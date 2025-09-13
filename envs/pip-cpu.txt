@@ -1,0 +1,19 @@
+# pip CPU requirements for FACTORS
+# - These are the Python packages installed via pip inside CPU environments
+# - This file is referenced by envs/conda-cpu.yml and docker/Dockerfile.cpu
+# - For CPU-only PyTorch wheels follow PyTorch official instructions; we leave torch out here by default
+numpy>=1.24
+scipy>=1.10
+pandas>=1.5
+scikit-learn>=1.2
+pyyaml>=6.0
+tqdm>=4.64
+joblib>=1.2
+matplotlib>=3.6
+seaborn>=0.12
+requests>=2.28
+shap>=0.41
+
+# Optional: if you want to install CPU-only PyTorch from pip, uncomment and use the correct wheel for your platform.
+# Example (commented): pip install torch==2.1.0+cpu torchvision==0.16.0+cpu -f https://download.pytorch.org/whl/torch_stable.html
+# We recommend following the official PyTorch instructions to pick the appropriate wheel for your platform.
