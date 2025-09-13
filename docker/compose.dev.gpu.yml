@@ -1,0 +1,36 @@
+# docker/compose.dev.gpu.yml
+# Local development docker-compose for GPU-enabled workflows.
+# - Builds image from docker/Dockerfile.gpu in the parent repository root
+# - Requires a host with NVIDIA drivers and the NVIDIA Container Toolkit
+# - Mounts repository for live development and allows interactive exec
+version: "3.8"
+
+services:
+  factors:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.gpu
+      args:
+        UBUNTU_VERSION: "22.04"
+    image: factors:gpu-dev
+    container_name: factors-dev-gpu
+    volumes:
+      - ..:/workspace:cached
+    working_dir: /workspace
+    # Keep container running so you can exec in for experiments or debugging
+    command: ["bash", "-lc", "while true; do sleep 1000; done"]
+    tty: true
+    stdin_open: true
+    environment:
+      - PYTHONUNBUFFERED=1
+      - PYTHONDONTWRITEBYTECODE=1
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=compute,utility
+    # Request all GPUs from the host via device_requests (preferred for modern Docker)
+    device_requests:
+      - driver: nvidia
+        count: -1            # -1 requests all available GPUs
+        capabilities: [gpu]
+    shm_size: "1g"
+    ports:
+      - "6006:6006"         # tensorboard default
