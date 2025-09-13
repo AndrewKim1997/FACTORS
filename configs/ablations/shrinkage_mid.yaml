@@ -1,0 +1,29 @@
+# configs/ablations/shrinkage_mid.yaml
+# Ablation: medium-strength shrinkage. Typical ridge settings used in many experiments.
+
+ablation:
+  id: "shrinkage_mid"
+  description: "Moderate ridge regularization strengths representing practical default values."
+
+modeling:
+  regularizer: "ridge"
+  # moderate alpha values commonly used for stabilization
+  alpha_values: [1e-3, 1e-2, 1e-1]
+
+experiment:
+  n_repeats: 5
+  seed_list: [0, 1, 2, 3, 4]
+  n_jobs: 4
+  fast_ci:
+    n_boot: 500
+    ci_alpha: 0.05
+
+evaluation:
+  metrics:
+    - "mse"
+    - "regret"
+    - "pci"
+
+logging:
+  save_results: true
+  results_path_template: "experiments/ablations/shrinkage_mid/{dataset}/{seed}"
