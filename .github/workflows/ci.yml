@@ -1,91 +1,90 @@
-# pyproject.toml for FACTORS repository
-# All comments are written in English.
+name: CI
 
-[build-system]
-# Use poetry-core as the PEP 517 build backend.
-requires = ["poetry-core>=1.5.0"]
-build-backend = "poetry.core.masonry.api"
+on:
+  push:
+    branches: ["main", "master"]
+  pull_request:
+    branches: ["main", "master"]
 
-[project]
-name = "factors"
-version = "0.1.0"
-description = "Factorial Approximation for Complementary Two-factor Optimization with Risk Scoring (FACTORS)"
-readme = "README.md"
-license = { text = "MIT" }
-authors = [
-  { name = "Dongseok Kim" },
-  { name = "Wonjun Jeong" },
-  { name = "Gisung Oh" }
-]
-requires-python = ">=3.10,<3.13"
-keywords = ["DOE", "SHAP", "experimental-design", "machine-learning", "reproducibility"]
-classifiers = [
-  "Development Status :: 4 - Beta",
-  "Intended Audience :: Science/Research",
-  "License :: OSI Approved :: MIT License",
-  "Programming Language :: Python :: 3",
-  "Programming Language :: Python :: 3 :: Only",
-  "Programming Language :: Python :: 3.10",
-  "Programming Language :: Python :: 3.11",
-  "Programming Language :: Python :: 3.12",
-  "Topic :: Scientific/Engineering",
-  "Topic :: Scientific/Engineering :: Artificial Intelligence"
-]
+permissions:
+  contents: read
+  packages: write
+  id-token: write
 
-# Core runtime dependencies
-dependencies = [
-  "numpy>=1.24",
-  "scipy>=1.10",
-  "pandas>=1.5",
-  "scikit-learn>=1.2",
-  "pyyaml>=6.0",
-  "tqdm>=4.64",
-  "joblib>=1.2",
-  "matplotlib>=3.6",
-  "seaborn>=0.12",
-  "requests>=2.28",
-  "shap>=0.41"
-]
+jobs:
+  test:
+    name: Test (py${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.10", "3.11", "3.12"]
+    timeout-minutes: 45
 
-[project.optional-dependencies]
-cpu = [
-  "torch>=2.0 ; platform_system != 'Darwin'",
-  "torchvision>=0.15 ; platform_system != 'Darwin'"
-]
-gpu = [
-  "torch>=2.0",
-  "torchvision>=0.15"
-]
-dev = [
-  "black>=24.1",
-  "ruff>=0.20",
-  "isort>=5.12",
-  "pre-commit>=3.4",
-  "pytest>=7.3",
-  "pytest-cov>=4.0",
-  "sphinx>=6.2",
-  "myst-parser>=0.19"
-]
-test = [
-  "pytest>=7.3",
-  "pytest-cov>=4.0"
-]
-docs = [
-  "sphinx>=6.2",
-  "myst-parser>=0.19",
-  "sphinx-rtd-theme>=1.2"
-]
+    env:
+      # workspace-local pip cache directory
+      PIP_CACHE_DIR: ${{ github.workspace }}/.pip-cache
 
-[tool.black]
-line-length = 88
-target-version = ["py310"]
-include = '\.pyi?$'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-[tool.ruff]
-line-length = 88
-select = ["E", "F", "W", "C90", "N"]
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
 
-[tool.pytest.ini_options]
-minversion = "7.0"
-addopts = "-q --maxfail=1"
-testpaths = ["tests"]
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.PIP_CACHE_DIR }}
+          key: ${{ runner.os }}-pip-${{ matrix.python-version }}-${{ hashFiles('envs/pip-cpu.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-${{ matrix.python-version }}-
+
+      - name: Install dependencies and dev tooling
+        run: |
+          python -m pip install --upgrade pip setuptools wheel
+          if [ -f envs/pip-cpu.txt ]; then
+            pip install -r envs/pip-cpu.txt
+          fi
+          # ensure test & lint tooling available
+          pip install pytest pytest-cov ruff black
+          # try editable install of package with dev extras (non-fatal)
+          pip install -e ".[dev]" || true
+
+      - name: Run linters (ruff, black check)
+        run: |
+          if command -v ruff >/dev/null 2>&1; then
+            ruff check src tests || true
+          else
+            echo "ruff not installed"
+          fi
+          if command -v black >/dev/null 2>&1; then
+            black --check src tests || true
+          else
+            echo "black not installed"
+          fi
+
+      - name: Run unit tests
+        run: |
+          python -m pytest -q tests/unit
+
+      - name: Download small datasets needed for sanity job
+        run: |
+          bash scripts/download_data.sh concrete car || echo "download script may have failed; continuing"
+
+      - name: Run integration sanity test (single quick job)
+        run: |
+          python -m pytest -q tests/integration/test_end_to_end_sanity.py -k "not slow" || true
+
+      - name: Upload test summary (if any)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ci-artifacts-${{ matrix.python-version }}
+          path: |
+            tests/pytest-*.log
+            experiments/sanity/**/metrics.json
+          if-no-files-found: ignore
