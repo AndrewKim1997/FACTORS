@@ -1,0 +1,75 @@
+# GPU Dockerfile for FACTORS
+# - Purpose: reproducible GPU-capable image for running experiments locally or on GPU runners
+# - Base image: NVIDIA CUDA runtime (choose a CUDA version compatible with your target host drivers)
+# - This file installs a supported Python version via apt, upgrades pip, then installs envs/pip-gpu.txt
+# - Note: For the most reliable PyTorch+CUDA wheel selection, prefer to list an explicit torch wheel in envs/pip-gpu.txt
+# Usage:
+#   docker build -f docker/Dockerfile.gpu -t factors:gpu .
+
+ARG UBUNTU_VERSION=22.04
+ARG CUDA_BASE=nvidia/cuda:12.1.1-cudnn8-runtime-ubuntu22.04
+FROM ${CUDA_BASE} AS base
+
+LABEL maintainer="FACTORS authors <maintainers@yourorg.example>"
+
+ENV DEBIAN_FRONTEND=noninteractive
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+
+# Make sure common utils are available and install a modern python (system python)
+# We install python3.11 as the default interpreter. Adjust if you prefer different minor versions.
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+      software-properties-common \
+      ca-certificates \
+      wget \
+      curl \
+      git \
+      build-essential \
+      gcc \
+      g++ \
+      libffi-dev \
+      libxml2-dev \
+      libxslt1-dev \
+      unzip \
+      python3.11 \
+      python3.11-venv \
+      python3.11-distutils \
+      python3-pip \
+      && rm -rf /var/lib/apt/lists/*
+
+# Ensure python3 points to python3.11 and pip refers to python3.11 pip
+RUN update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.11 1 || true
+RUN python3 -m pip install --upgrade pip setuptools wheel
+
+# Set CUDA environment variables for common runtimes
+ENV NVIDIA_VISIBLE_DEVICES=all
+ENV NVIDIA_DRIVER_CAPABILITIES=compute,utility
+
+WORKDIR /workspace
+
+# Copy dependency lists and project metadata first to leverage layer cache
+COPY envs/pip-gpu.txt envs/pip-gpu.txt
+COPY pyproject.toml pyproject.toml
+COPY setup.cfg setup.cfg 2>/dev/null || true
+
+# Install Python dependencies. We expect that envs/pip-gpu.txt contains appropriate torch wheel or instructs users to install compatible wheel.
+RUN if [ -f envs/pip-gpu.txt ]; then \
+      python3 -m pip install -r envs/pip-gpu.txt; \
+    else \
+      echo "Warning: envs/pip-gpu.txt not found, you should install GPU deps manually inside the image"; \
+    fi
+
+# Copy repository source
+COPY . /workspace
+
+# Install package in editable mode
+RUN python3 -m pip install -e .
+
+# Copy and enable entrypoint
+COPY docker/entrypoint.sh /usr/local/bin/factors-entrypoint.sh
+RUN chmod +x /usr/local/bin/factors-entrypoint.sh
+
+WORKDIR /workspace
+ENTRYPOINT ["bash", "/usr/local/bin/factors-entrypoint.sh"]
+CMD ["help"]
