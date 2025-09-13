@@ -1,0 +1,32 @@
+# configs/ablations/shrinkage_low.yaml
+# Ablation: low shrinkage (near-unregularized) settings for ridge/penalty experiments.
+# This ablation evaluates sensitivity when regularization strength is very small.
+
+ablation:
+  id: "shrinkage_low"
+  description: "Low ridge regularization strengths to emulate near-unregularized estimates."
+
+modeling:
+  regularizer: "ridge"
+  # small alpha values (close to zero) -> weak shrinkage
+  alpha_values: [1e-8, 1e-6, 1e-4]
+
+experiment:
+  n_repeats: 5
+  seed_list: [0, 1, 2, 3, 4]
+  n_jobs: 4
+  fast_ci:
+    # CI and bootstrap settings for CI sanity runs
+    n_boot: 200
+    ci_alpha: 0.05
+
+evaluation:
+  metrics:
+    - "mse"
+    - "mae"
+    - "mse_gap"        # difference to canonical baseline
+    - "pci"
+
+logging:
+  save_results: true
+  results_path_template: "experiments/ablations/shrinkage_low/{dataset}/{seed}"
