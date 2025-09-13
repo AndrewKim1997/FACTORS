@@ -27,25 +27,48 @@ def compute_shap_explainer_values(model, X: pd.DataFrame, background: Optional[p
     Parameters
     ----------
     model :
-        A fitted model object. shap.Explainer will attempt to pick an appropriate explainer.
+        A fitted model object or a callable that accepts X and returns model outputs.
+        If a non-callable estimator is provided (e.g., sklearn estimator), this function will
+        attempt to use model.predict as the callable.
     X :
         DataFrame of inputs (n_samples x n_features).
     background :
-        Optional background dataset for explainer; if None, shap will set one automatically.
+        Optional background dataset for explainer; if None, X will be used as the background
+        (safe for small toy examples / tests).
 
     Returns
     -------
     tuple (expected_value, shap_values)
-      - expected_value: scalar or list of expected values returned by explainer
+      - expected_value: scalar or array of expected values returned by explainer
       - shap_values: numpy array of shape (n_samples, n_features) or the structure returned by shap
     """
     if shap is None:
         raise ImportError("shap library is required to compute SHAP values. Install with `pip install shap`.")
 
-    explainer = shap.Explainer(model, background) if background is not None else shap.Explainer(model)
-    sv = explainer(X)
-    return sv.base_values, np.asarray(sv.values)
+    # Ensure we have a callable to pass to shap.Explainer
+    if callable(model):
+        model_callable = model
+    else:
+        # prefer sklearn-like .predict
+        if hasattr(model, "predict") and callable(getattr(model, "predict")):
+            model_callable = lambda data: model.predict(data)
+        elif hasattr(model, "forward") and callable(getattr(model, "forward")):
+            model_callable = lambda data: model.forward(data)
+        else:
+            raise TypeError("Model must be callable or implement a callable 'predict' or 'forward' method.")
 
+    # Choose background: if provided use it, otherwise use X (safe fallback for tests / small data)
+    masker = background if background is not None else X
+
+    # Build explainer using the callable and masker/background
+    explainer = shap.Explainer(model_callable, masker)
+    sv = explainer(X)
+
+    # sv.base_values may be scalar or array; sv.values is the SHAP attribution array or nested structure
+    expected_value = sv.base_values
+    shap_values = np.asarray(sv.values)
+
+    return expected_value, shap_values
 
 def _build_design_matrix_for_two_factors(
     levels_a: np.ndarray, levels_b: np.ndarray, drop_first: bool = False
