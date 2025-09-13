@@ -1,0 +1,29 @@
+# configs/ablations/shrinkage_high.yaml
+# Ablation: high shrinkage (strong regularization) to evaluate under- and over- smoothing effects.
+
+ablation:
+  id: "shrinkage_high"
+  description: "High ridge regularization strengths to observe bias from over-shrinkage."
+
+modeling:
+  regularizer: "ridge"
+  # large alpha values -> strong shrinkage toward zero or intercept-only models
+  alpha_values: [1.0, 10.0, 100.0]
+
+experiment:
+  n_repeats: 5
+  seed_list: [0, 1, 2, 3, 4]
+  n_jobs: 4
+  fast_ci:
+    n_boot: 200
+    ci_alpha: 0.05
+
+evaluation:
+  metrics:
+    - "mse"
+    - "bias"
+    - "pci"
+
+logging:
+  save_results: true
+  results_path_template: "experiments/ablations/shrinkage_high/{dataset}/{seed}"
