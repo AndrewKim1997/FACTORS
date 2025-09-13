@@ -1,0 +1,71 @@
+# .dockerignore for FACTORS repository
+# Exclude large, sensitive, or unnecessary files from the Docker build context.
+# Keep repo sources and build inputs (src, configs, envs, docker, scripts, pyproject.toml, Makefile, README, LICENSE).
+
+# Git metadata
+.git
+.gitignore
+
+# GitHub workflows and CI artifacts (not needed in build context)
+.github
+.github/workflows
+
+# Python virtual environments and caches
+venv/
+.venv/
+.env
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.mypy_cache/
+.pytest_cache/
+.ipynb_checkpoints/
+
+# Data, raw snapshots, experiments and output results (large files)
+data/
+data/raw/
+data/processed/
+data/snapshots/
+experiments/
+results/
+logs/
+
+# Model checkpoints and large binary artifacts
+checkpoints/
+*.ckpt
+*.pth
+*.pt
+*.tar
+*.h5
+*.bin
+*.npz
+
+# Build artifacts and packaging
+build/
+dist/
+*.egg-info/
+*.egg
+
+# OS and editor files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.sublime-workspace
+*.sublime-project
+
+# Secrets and local credentials
+*.pem
+*.key
+secrets/
+credentials/
+*.sqlite3
+
+# Jupyter notebooks (optional to ignore; keep if you want notebooks in image)
+notebooks/
+
+# Note:
+# - Do not ignore docker/, src/, configs/, envs/, scripts/, Makefile, pyproject.toml, README.md, LICENSE, or CITATION.cff
+#   since they are required to build the project image.
+# - Adjust patterns above if you need certain directories included in specific builds.
