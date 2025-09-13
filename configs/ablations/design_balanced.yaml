@@ -1,0 +1,38 @@
+# configs/ablations/design_balanced.yaml
+# Ablation: generate or sample balanced two-factor designs where each cell has similar sample size.
+# This helps evaluate how the method behaves when the experimental design is well-balanced.
+
+ablation:
+  id: "design_balanced"
+  description: "Balanced A x B design with uniform cell counts."
+
+design:
+  type: "synthetic_balanced"
+  factor_a:
+    name: "A"
+    levels: 4
+  factor_b:
+    name: "B"
+    levels: 3
+  samples_per_cell: 200   # number of observations per (A,B) cell
+
+generation:
+  noise_std: 1.0
+  signal_strength: 1.0
+  # option to use real dataset subsampling instead of synthetic generation
+  use_real_dataset: false
+  real_dataset_sample_strategy: "stratified_uniform"
+
+experiment:
+  n_repeats: 5
+  seed_list: [0, 1, 2, 3, 4]
+  n_jobs: 4
+
+evaluation:
+  metrics:
+    - "mse"
+    - "pci"
+    - "coverage_95"   # bootstrap CI coverage for cell means
+
+logging:
+  results_path_template: "experiments/ablations/design_balanced/{dataset}/{seed}"
