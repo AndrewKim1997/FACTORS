@@ -1,0 +1,88 @@
+# configs/runs/main.yaml
+# Canonical list of runs used to reproduce the main paper tables and figures.
+# Each entry describes a canonical "experiment" that scripts/reproduce_all.sh will execute.
+# Fields:
+#  - id: short run identifier used for folder names and figure/table mapping
+#  - dataset: reference key matching configs/datasets/<dataset>.yaml (file stem)
+#  - config: specific dataset/config file to pass to run_experiment.py
+#  - type: "main" | "ablation" | "diagnostic"
+#  - seeds: list of integer seeds (overrides global seed list if present)
+#  - n_jobs: number of workers for that run
+#  - device: "cpu" or "cuda"
+#  - notes: human-readable description linking run to paper figure/table
+#  - output_template: where outputs should be written (supports {dataset} {id} {seed})
+#
+# The reproduction driver script will iterate these entries and run:
+#   python scripts/run_experiment.py --config <config> --seed <seed> --out <output_dir>
+#
+canonical_runs:
+  - id: "concrete_main_table"
+    dataset: "concrete"
+    config: "configs/datasets/concrete.yaml"
+    type: "main"
+    seeds: [0, 1, 2, 3, 4]
+    n_jobs: 8
+    device: "cpu"
+    notes: "Reproduce Table 1 (main numeric dataset results and PCI diagnostics) for Concrete dataset."
+    output_template: "experiments/main/concrete/{id}/seed_{seed}"
+
+  - id: "car_main_table"
+    dataset: "car"
+    config: "configs/datasets/car.yaml"
+    type: "main"
+    seeds: [0, 1, 2, 3, 4]
+    n_jobs: 8
+    device: "cpu"
+    notes: "Reproduce Table 2 (categorical dataset results) for Car evaluation dataset."
+    output_template: "experiments/main/car/{id}/seed_{seed}"
+
+  - id: "fmnist_main_figures"
+    dataset: "fmnist"
+    config: "configs/datasets/fmnist.yaml"
+    type: "main"
+    # FMNIST training is GPU-capable in our repo; use GPU for full paper experiments where available
+    seeds: [0, 1, 2, 3, 4]
+    n_jobs: 8
+    device: "cuda"
+    notes: "Reproduce Figures 3-5 (FMNIST experiments: score surfaces, PCI trends, ablations)."
+    output_template: "experiments/main/fmnist/{id}/seed_{seed}"
+
+  - id: "risk_lambda_grid_fmnist"
+    dataset: "fmnist"
+    config: "configs/ablations/risk_lambda_sweep.yaml"
+    type: "ablation"
+    seeds: [0, 1, 2]
+    n_jobs: 12
+    device: "cuda"
+    notes: "Risk lambda sweep used to generate heatmaps in paper (risk vs cost tradeoffs)."
+    output_template: "experiments/ablations/risk_lambda_sweep/{dataset}/{id}/seed_{seed}"
+
+  - id: "design_balanced_sim"
+    dataset: "synthetic_balanced"
+    config: "configs/ablations/design_balanced.yaml"
+    type: "ablation"
+    seeds: [0, 1, 2, 3, 4]
+    n_jobs: 6
+    device: "cpu"
+    notes: "Synthetic balanced design ablation (Figure X)."
+    output_template: "experiments/ablations/design_balanced/{id}/seed_{seed}"
+
+  - id: "shrinkage_summary"
+    dataset: "concrete"
+    config: "configs/ablations/shrinkage_mid.yaml"
+    type: "ablation"
+    seeds: [0, 1, 2, 3, 4]
+    n_jobs: 6
+    device: "cpu"
+    notes: "Shrinkage ablation summary across alpha grid (supports Table/plot generation)."
+    output_template: "experiments/ablations/shrinkage_mid/{dataset}/{id}/seed_{seed}"
+
+# meta: how reproduce_all.sh should interpret the file
+meta:
+  # If true, runs will be executed in the listed order. If false, the driver may parallelize at top-level.
+  preserve_order: true
+  # Template command (driver can use this to spawn processes)
+  # Example replacement: {config}, {seed}, {out}
+  run_command_template: "python scripts/run_experiment.py --config {config} --seed {seed} --out {out}"
+  # After successful run of seeds for an id, run the post-processing step to assemble tables/figures
+  postprocess_command_template: "python scripts/make_tables_figs.py --inputs {inputs_glob} --out results/figures/{id}"
