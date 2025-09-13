@@ -1,0 +1,34 @@
+# docker/compose.dev.cpu.yml
+# Local development docker-compose for CPU-based workflows.
+# - Builds image from docker/Dockerfile.cpu in the parent repository root
+# - Binds the repository into /workspace so edits are visible inside the container
+# - Starts a container that stays alive; use `docker compose exec` to run commands interactively
+version: "3.8"
+
+services:
+  factors:
+    # Build from local Dockerfile.cpu (context is repository root)
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.cpu
+      args:
+        PYTHON_VERSION: "3.11"     # override with docker compose build --build-arg if needed
+    image: factors:cpu-dev
+    container_name: factors-dev-cpu
+    # Bind mount repository to /workspace for live development
+    volumes:
+      - ..:/workspace:cached
+    working_dir: /workspace
+    # Keep the container alive for interactive use
+    command: ["bash", "-lc", "while true; do sleep 1000; done"]
+    tty: true
+    stdin_open: true
+    # Useful environment variables for Python development
+    environment:
+      - PYTHONUNBUFFERED=1
+      - PYTHONDONTWRITEBYTECODE=1
+    # Shared memory size can help some PyTorch dataloaders on CPU
+    shm_size: "1g"
+    # Optional: expose ports if you run tensorboard or web UI inside container
+    ports:
+      - "6006:6006"    # tensorboard default
