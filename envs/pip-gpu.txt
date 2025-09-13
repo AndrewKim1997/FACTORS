@@ -1,0 +1,25 @@
+# pip GPU requirements for FACTORS
+# - This file is referenced by envs/conda-gpu.yml and docker/Dockerfile.gpu
+# - It contains common Python packages. For PyTorch + CUDA, prefer installing an explicit wheel
+#   that matches your host CUDA driver. Example install commands are provided as comments.
+numpy>=1.24
+scipy>=1.10
+pandas>=1.5
+scikit-learn>=1.2
+pyyaml>=6.0
+tqdm>=4.64
+joblib>=1.2
+matplotlib>=3.6
+seaborn>=0.12
+requests>=2.28
+shap>=0.41
+
+# PyTorch with CUDA: install the appropriate wheel for your CUDA version.
+# Example for CUDA 11.8 (replace version numbers with the desired ones):
+# pip install --index-url https://download.pytorch.org/whl/cu118 torch==2.1.0 torchvision==0.16.0
+#
+# Or using the general stable wheel index (PyTorch provides platform-specific instructions):
+# pip install torch torchvision --index-url https://download.pytorch.org/whl/torch_stable.html
+#
+# NOTE: We do not pin a +cu suffix in this file because CUDA wheel selection depends on the host GPU drivers.
+# Choose and install the correct torch wheel before running GPU experiments.
