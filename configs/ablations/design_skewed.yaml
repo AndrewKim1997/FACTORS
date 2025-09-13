@@ -1,0 +1,45 @@
+# configs/ablations/design_skewed.yaml
+# Ablation: generate or sample skewed two-factor designs where some cells are under-sampled.
+# This examines robustness to missing or imbalanced cells.
+
+ablation:
+  id: "design_skewed"
+  description: "Skewed A x B design with imbalanced cell counts and some sparse cells."
+
+design:
+  type: "synthetic_skewed"
+  factor_a:
+    name: "A"
+    levels: 4
+  factor_b:
+    name: "B"
+    levels: 3
+  # specify relative weights for cells to create skew (rows x cols)
+  # weights are normalized and then scaled by base_samples to produce integer counts
+  base_samples: 200
+  cell_weight_matrix:
+    # rows correspond to A levels, columns to B levels
+    - [0.01, 0.01, 0.01]   # A level 0: mostly empty
+    - [0.1, 0.2, 0.1]      # A level 1: moderate
+    - [0.3, 0.2, 0.2]      # A level 2: dense
+    - [0.2, 0.05, 0.01]    # A level 3: mixed
+
+generation:
+  noise_std: 1.0
+  signal_strength: 1.0
+  missing_cell_fraction: 0.05   # fraction of cells to drop entirely (simulate missingness)
+
+experiment:
+  n_repeats: 5
+  seed_list: [0, 1, 2, 3, 4]
+  n_jobs: 4
+
+evaluation:
+  metrics:
+    - "mse"
+    - "pci"
+    - "cell_completion_rate"   # fraction of non-empty cells
+    - "coverage_95"
+
+logging:
+  results_path_template: "experiments/ablations/design_skewed/{dataset}/{seed}"
