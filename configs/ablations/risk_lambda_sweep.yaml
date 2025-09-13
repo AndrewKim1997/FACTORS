@@ -1,0 +1,36 @@
+# configs/ablations/risk_lambda_sweep.yaml
+# Ablation: sweep over risk-adjustment and cost weights used in the Score function.
+# Score(x) = mu_hat(x) - kappa * uncertainty(x) - rho * normalized_cost(x)
+# We sweep kappa and rho to understand sensitivity and optimal trade-offs.
+
+ablation:
+  id: "risk_lambda_sweep"
+  description: "Grid sweep for risk aversion (kappa) and cost weight (rho)."
+
+sweep:
+  # kappa: weight on uncertainty penalty (risk aversion)
+  kappa_grid: [0.0, 0.5, 1.0, 2.0, 5.0]
+  # rho: weight on normalized cost
+  rho_grid: [0.0, 0.1, 0.5, 1.0]
+  # cross product will be evaluated
+  combinations: "cartesian"
+
+experiment:
+  n_repeats_per_combo: 3
+  seed_list: [0, 1, 2]
+  n_jobs: 8
+  quick_run:
+    # This quick_run configuration is used for CI sanity checks and should be cheap
+    use_quick_subset: true
+    subset_n_cells: 50
+
+evaluation:
+  primary_metric: "score_gain"   # improvement in risk-adjusted score vs baseline
+  secondary_metrics:
+    - "mse"
+    - "pci"
+    - "cost_used"
+
+logging:
+  save_grid_results: true
+  results_dir: "experiments/ablations/risk_lambda_sweep/{dataset}"
