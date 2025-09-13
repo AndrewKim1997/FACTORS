@@ -1,0 +1,56 @@
+# configs/datasets/fmnist.yaml
+# Configuration for Fashion-MNIST experiments.
+# This file includes dataset hooks for torchvision, default training hyperparameters,
+# and a set of factor levels intended for DOE-style hyperparameter studies.
+
+dataset:
+  id: "fmnist"
+  name: "Fashion-MNIST"
+  task: "image-classification"
+  source:
+    # torchvision provides the dataset; include a note for reproducibility
+    provider: "torchvision.datasets.FashionMNIST"
+    url_note: "Use torchvision.datasets.FashionMNIST(download=True)"
+  files:
+    raw: "data/raw/fmnist"                  # directory used by torchvision
+    processed: "data/processed/fmnist"      # optional processed cache
+
+data_loading:
+  image_size: [28, 28]
+  normalize:
+    mean: [0.2860]
+    std: [0.3530]
+  batch_size: 128
+  num_workers: 4
+  pin_memory: true
+
+training_defaults:
+  epochs: 20
+  device: "cuda"         # default device for model training experiments; override to cpu for CI
+  optimizer: "adam"
+  learning_rate: 1e-3
+  weight_decay: 0.0
+  scheduler: null
+
+factors_for_doe:
+  # For DOE-style hyperparameter search we treat training hyperparameters as factors.
+  # Each factor has explicitly listed candidate levels (discrete grid).
+  factor_list:
+    - name: "batch_size"
+      levels: [64, 128, 256]
+    - name: "learning_rate"
+      levels: [0.0003, 0.001, 0.003]
+    - name: "optimizer"
+      levels: ["sgd", "adam"]
+    - name: "weight_decay"
+      levels: [0.0, 1e-4, 1e-3]
+  # When composing two-factor experiments, scripts should take any two of the above factors
+  # and evaluate the cross of their levels to compute main effects and interaction.
+
+experiment_defaults:
+  seed_list: [0, 1, 2]     # small seed set for quick experiments and CI
+  quick_run:
+    epochs: 1
+    batch_size: 32
+    n_train_samples: 1024  # sample subset for fast CI sanity
+    run_name: "sanity_fmnist"
