@@ -1,0 +1,81 @@
+# configs/runs/sanity.yaml
+# Lightweight smoke-test configuration intended for CI. This should be fast and deterministic.
+# CI picks this file and runs a small subset of canonical runs to validate repo health.
+#
+# Intended behavior of CI:
+#  - For each entry: run a single quick-run seed (usually the global sanity_seed)
+#  - Use dataset-specific quick_run overrides (see configs/datasets/* quick_run)
+#  - Limit n_boot and epochs to small values to keep runtime short
+#
+sanity_runs:
+  # quick sanity for numeric dataset
+  - id: "concrete_sanity"
+    dataset: "concrete"
+    config: "configs/datasets/concrete.yaml"
+    type: "sanity"
+    # use the global sanity seed (configs/global.yaml -> reproducibility.default_seed)
+    seeds: [0]
+    n_jobs: 1
+    device: "cpu"
+    overrides:
+      # these override fields will be passed into run_experiment (via config-merging)
+      experiment_defaults:
+        quick_run:
+          n_rows_sample: 500
+          run_name: "sanity_concrete"
+      bootstrap:
+        n_boot: 50
+    notes: "CI smoke test for Concrete. Should be very fast (~minutes)."
+    output_template: "experiments/sanity/concrete/{id}/seed_{seed}"
+
+  - id: "car_sanity"
+    dataset: "car"
+    config: "configs/datasets/car.yaml"
+    type: "sanity"
+    seeds: [0]
+    n_jobs: 1
+    device: "cpu"
+    overrides:
+      experiment_defaults:
+        quick_run:
+          n_rows_sample: 500
+          run_name: "sanity_car"
+      bootstrap:
+        n_boot: 50
+    notes: "CI smoke test for Car dataset."
+    output_template: "experiments/sanity/car/{id}/seed_{seed}"
+
+  - id: "fmnist_sanity"
+    dataset: "fmnist"
+    config: "configs/datasets/fmnist.yaml"
+    type: "sanity"
+    seeds: [0]
+    n_jobs: 1
+    # Force CPU in CI to avoid requiring GPUs on hosted runners; local CI can override to use GPU
+    device: "cpu"
+    overrides:
+      training_defaults:
+        epochs: 1
+        batch_size: 32
+      experiment_defaults:
+        quick_run:
+          n_train_samples: 1024
+          run_name: "sanity_fmnist"
+      bootstrap:
+        n_boot: 50
+    notes: "CI smoke test for FMNIST using tiny training settings to validate training/inference pipelines."
+    output_template: "experiments/sanity/fmnist/{id}/seed_{seed}"
+
+# CI-level settings used by the CI driver or GitHub Actions workflow
+ci:
+  # path to the script that executes a single run (driver should compose command using run_command_template)
+  run_script: "scripts/run_experiment.py"
+  # Template used to run each single job in CI, supports --override-yaml or CLI overrides if available
+  run_command_template: "python {run_script} --config {config} --seed {seed} --out {out}"
+  # Per-run timeout (minutes) enforced by CI job
+  per_run_timeout_minutes: 15
+  # If true, upload sanity outputs (figures/metrics) as CI artifacts
+  upload_artifacts: true
+  artifacts:
+    - "experiments/sanity/*/metrics.json"
+    - "results/figures/sanity/*"
