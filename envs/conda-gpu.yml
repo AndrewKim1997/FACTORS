@@ -1,0 +1,32 @@
+# Conda environment for GPU-enabled development and reproduction
+# - Default Python is 3.11. Change python=3.11 to 3.10 or 3.12 if you need a different minor version.
+# - This environment attempts to provide a working GPU stack via conda.
+# - Adjust cudatoolkit and pytorch versions to match your host GPU driver; the provided versions are common but may need change.
+
+name: factors-gpu
+channels:
+  - defaults
+  - conda-forge
+  - pytorch
+dependencies:
+  # change python version here if desired (3.10 / 3.11 / 3.12 are supported)
+  - python=3.11
+  - pip
+  - numpy>=1.24
+  - scipy>=1.10
+  - pandas>=1.5
+  - scikit-learn>=1.2
+  - matplotlib>=3.6
+  - seaborn>=0.12
+  - pyyaml>=6.0
+  - tqdm
+  - joblib
+  - requests
+  # NOTE: the following lines attempt to install a common PyTorch+CUDA pairing.
+  # Change the cudatoolkit and pytorch spec if your host uses a different CUDA driver.
+  # If you prefer to install PyTorch via pip wheel, remove or comment the lines below and use pip.
+  - pytorch>=2.0
+  - torchvision>=0.15
+  - cudatoolkit=11.8
+  - pip:
+    - -r pip-gpu.txt
