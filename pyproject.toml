@@ -1,25 +1,23 @@
+# pyproject.toml for FACTORS repository
+# Minimal, TOML-valid configuration compatible with Python 3.10-3.12
+
 [build-system]
-# Use poetry-core as the PEP 517 build backend.
 requires = ["poetry-core>=1.5.0"]
 build-backend = "poetry.core.masonry.api"
 
 [project]
 name = "factors"
 version = "0.1.0"
-# Short description used by package indexes and readers
 description = "Factorial Approximation for Complementary Two-factor Optimization with Risk Scoring (FACTORS)"
 readme = "README.md"
-# SPDX license expression
 license = { text = "MIT" }
-# Main authors for repository metadata (ordered as requested)
 authors = [
   { name = "Dongseok Kim" },
   { name = "Wonjun Jeong" },
   { name = "Gisung Oh" }
 ]
-# Runtime Python compatibility: support Python 3.10, 3.11, 3.12
 requires-python = ">=3.10,<3.13"
-keywords = ["Design of Experiments". "Explainable AI", "Factorial Design", "Shapley Values", "Uncertainty Quantification"]
+keywords = ["Design of Experiments", "Explainable AI", "Factorial Design", "Shapley Values", "Uncertainty Quantification"]
 classifiers = [
   "Development Status :: 4 - Beta",
   "Intended Audience :: Science/Research",
@@ -33,7 +31,6 @@ classifiers = [
   "Topic :: Scientific/Engineering :: Artificial Intelligence"
 ]
 
-# Core runtime dependencies
 dependencies = [
   "numpy>=1.24",
   "scipy>=1.10",
@@ -48,7 +45,6 @@ dependencies = [
   "shap>=0.41"
 ]
 
-# Optional dependency groups for different execution targets
 [project.optional-dependencies]
 cpu = [
   "torch>=2.0 ; platform_system != 'Darwin'",
@@ -68,21 +64,11 @@ dev = [
   "sphinx>=6.2",
   "myst-parser>=0.19"
 ]
-test = [
-  "pytest>=7.3",
-  "pytest-cov>=4.0"
-]
-docs = [
-  "sphinx>=6.2",
-  "myst-parser>=0.19",
-  "sphinx-rtd-theme>=1.2"
-]
 
-# Tool-specific configuration sections
 [tool.black]
 line-length = 88
 target-version = ["py310"]
-include = '\.pyi?$'
+include = '\\.pyi?$'
 
 [tool.ruff]
 line-length = 88
