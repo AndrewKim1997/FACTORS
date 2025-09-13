@@ -1,0 +1,129 @@
+# configs/global.yaml
+# Global configuration shared across experiments, CI, and reproduction scripts.
+# All keys are intentionally explicit to make automated tooling and human readers both comfortable.
+
+project:
+  name: "FACTORS"
+  description: "Factorial Approximation for Complementary Two-factor Optimization with Risk Scoring"
+  version: "0.1.0"
+  authors:
+    - "Dongseok Kim"
+    - "Wonjun Jeong"
+    - "Gisung Oh"
+
+paths:
+  # repository-relative directories used by scripts and CI
+  repo_root: "."                          # repository root (usually the path where Makefile lives)
+  data_raw: "data/raw"                    # raw downloads (do not commit large files)
+  data_processed: "data/processed"        # processed / cached dataset files
+  data_snapshots: "data/raw/snapshots"    # snapshots for deleted/archived public datasets
+  experiments: "experiments"              # per-run experiment outputs (logs, metrics, checkpoints)
+  experiments_archive: "experiments/archive"
+  results: "results"                      # paper artifacts (figures, tables)
+  logs: "results/logs"                    # centralized run logs captured by CI/sanity runs
+  figures: "results/figures"              # final figures for paper
+  tables: "results/tables"                # final tables (csv/tex)
+  checkpoints: "experiments/checkpoints"  # shared checkpoint location (small artifacts only)
+  reproducibility_doc: "REPRODUCIBILITY.md"
+
+environment:
+  # supported Python minor versions (used for CI/build documentation)
+  python_versions: [3.10, 3.11, 3.12]
+  conda_cpu: "envs/conda-cpu.yml"
+  conda_gpu: "envs/conda-gpu.yml"
+  pip_cpu: "envs/pip-cpu.txt"
+  pip_gpu: "envs/pip-gpu.txt"
+  pyproject: "pyproject.toml"
+  docker:
+    cpu_image: "factors:cpu"
+    gpu_image: "factors:gpu"
+    entrypoint: "docker/entrypoint.sh"
+    compose_cpu: "docker/compose.dev.cpu.yml"
+    compose_gpu: "docker/compose.dev.gpu.yml"
+
+reproducibility:
+  # canonical seeds used for multi-seed experiments and for CI reproducibility checks
+  default_seed: 0
+  seed_list: [0, 1, 2, 3, 4]              # canonical seeds used for paper runs
+  record_commit: true                     # whether to record git commit hash in run metadata
+  record_env: true                        # whether to export pip/conda env during runs
+  deterministic_flags:
+    enable_torch_deterministic: false     # set to true only when deterministic run is required
+    set_python_hash_seed: true
+
+logging:
+  level: "INFO"                           # default logging level for scripts
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  save_stdout: true                       # capture stdout to run log file
+  rotate_when: "midnight"                 # optional rotation policy for long-running runners
+  max_bytes: 0                            # 0 means no size rotation (use time-based rotation)
+
+experiment_defaults:
+  device: "cpu"                           # default device, override in dataset-specific configs
+  n_jobs: 4                               # default number of parallel workers where applicable
+  timeout_minutes: 1440                   # default per-experiment timeout for local orchestration
+  run_dir_template: "experiments/{run_name}/seed_{seed}"  # templated run directory
+  metrics_filename: "metrics.json"        # filename for summary metrics in each run
+
+bootstrap:
+  n_boot: 1000                            # default number of bootstrap replicates
+  ci_alpha: 0.05                          # default two-sided CI level (95%)
+  ci_method: "percentile"                 # 'percentile' or 'se' (normal approx)
+
+scoring:
+  # default risk-adjusted score parameters used by score.compute_risk_adjusted_score
+  kappa: 1.0                              # uncertainty penalty multiplier
+  rho: 0.0                                # normalized cost weight
+  normalize_costs: true
+
+optimizer:
+  # defaults for optimizer routines
+  budget: 10.0                            # default budget used by greedy/beam search (units depend on cost)
+  beam_width: 5
+  max_selection_size: null               # null means automatic (up to all non-NaN cells)
+  greedy_cost_fallback: 1.0
+
+pci:
+  # reporting thresholds for PCI diagnostics
+  pci_threshold_warn: 0.2                 # if PCI > this, emit a warning in analysis logs
+  pci_reporting: true
+
+ci:
+  # CI / sanity run related defaults
+  sanity_config: "configs/runs/sanity.yaml"
+  sanity_seed: 0
+  sanity_timeout_minutes: 20
+  docker_ci_build_only: true              # Docker CI will build images and run smoke checks only
+
+data:
+  download_script: "scripts/download_data.sh"
+  checksum_file: "data/hashes.json"       # file that stores expected SHA256 hashes for public files
+  allow_local_snapshots: true             # if public dataset unavailable, use snapshots in data_snapshots
+
+artifacts:
+  # artifact retention and formats
+  keep_checkpoints: 5
+  compress_results: true
+  figure_formats: ["pdf", "png"]
+  save_plots_pdf: true
+
+ci_artifacts_upload:
+  - "results/figures"
+  - "results/tables"
+  - "experiments/*/metrics.json"
+
+notebook:
+  jupyter_port: 8888
+  allow_tokenless: false
+
+meta:
+  canonical_runs_file: "configs/runs/main.yaml"
+  reproducibility_checklist:
+    - "commit recorded"
+    - "environment exported"
+    - "data checksums verified"
+    - "config snapshot saved with run"
+    - "seed list saved"
+  notes: |
+    This global configuration file contains common defaults used by scripts, Makefile and CI.
+    Override values in dataset- or run-specific YAML files under configs/ when necessary.
