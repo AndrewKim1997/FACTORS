@@ -1,12 +1,9 @@
 # .github/workflows/ci.yml
-# Continuous Integration workflow for FACTORS
-# - Runs on push and pull_request to validate linting, unit tests, and a short end-to-end sanity job
-# - Matrix tests for Python 3.10, 3.11, 3.12 (project supports these versions)
-# - Uses envs/pip-cpu.txt for lightweight install; dev extras are installed for lint/test tooling
-#
-# Notes:
-# - The sanity end-to-end test uses the small CI-friendly config in configs/runs/sanity.yaml.
-# - If you prefer to skip the hardware-heavy sanity job in hosted runners, remove the final pytest step.
+# Fixed CI workflow for FACTORS
+# - Replaced runner.temp usage (which caused the "Unrecognized named-value: 'runner'" error)
+#   with a workspace-local cache directory reference.
+# - Matrix: Python 3.10, 3.11, 3.12
+# - Lint, unit tests, and a small integration sanity job are executed.
 name: CI
 
 on:
@@ -30,7 +27,8 @@ jobs:
     timeout-minutes: 45
 
     env:
-      PIP_CACHE_DIR: ${{ runner.temp }}/pip-cache
+      # use a workspace-local pip cache directory instead of runner.temp (avoids the runner.* expression issue)
+      PIP_CACHE_DIR: ${{ github.workspace }}/.pip-cache
 
     steps:
       - name: Checkout repository
@@ -57,7 +55,7 @@ jobs:
           if [ -f envs/pip-cpu.txt ]; then
             pip install -r envs/pip-cpu.txt
           fi
-          # install dev extras for lint/test (safe lightweight set)
+          # install dev extras for lint/test (safe lightweight set). Fall back to pip-cpu if editable install fails.
           pip install -e ".[dev]" || pip install -r envs/pip-cpu.txt
 
       - name: Run linters (ruff, black check)
