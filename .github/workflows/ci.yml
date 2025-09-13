@@ -49,14 +49,26 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pip-${{ matrix.python-version }}-
 
-      - name: Install system deps (if any) and pip requirements
+      - name: Install system deps and pip requirements (robust)
         run: |
           python -m pip install --upgrade pip setuptools wheel
+          # install runtime requirements if provided
           if [ -f envs/pip-cpu.txt ]; then
             pip install -r envs/pip-cpu.txt
           fi
-          # install dev extras for lint/test (safe lightweight set). Fall back to pip-cpu if editable install fails.
-          pip install -e ".[dev]" || pip install -r envs/pip-cpu.txt
+
+          # Ensure core dev/test tooling are present (explicit)
+          pip install pytest pytest-cov ruff black
+
+          # Try to install package in editable mode with dev extras; don't fail the job if this step errors
+          # (some runners or pyproject setups may behave differently; keep explicit dev tooling above)
+          pip install -e ".[dev]" || true
+
+      - name: Run unit tests
+        run: |
+          # Prefer module invocation to avoid "command not found" issues
+          python -m pytest -q tests/unit
+
 
       - name: Run linters (ruff, black check)
         run: |
