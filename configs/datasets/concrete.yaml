@@ -1,0 +1,62 @@
+# configs/datasets/concrete.yaml
+# Configuration for UCI Concrete Compressive Strength dataset
+# This file contains download metadata, column names, suggested preprocessing,
+# and example two-factor definitions for DOE-style analysis.
+
+dataset:
+  id: "concrete"
+  name: "UCI Concrete Compressive Strength"
+  task: "regression"
+  source:
+    # Fill with actual download URL or dataset provider
+    url: "https://archive.ics.uci.edu/ml/machine-learning-databases/concrete/compressive/Concrete_Data.csv"
+    sha256: ""          # optional: provide SHA256 checksum for the downloaded file
+  files:
+    raw: "data/raw/concrete/Concrete_Data.csv"
+    processed: "data/processed/concrete/processed.parquet"
+
+columns:
+  # Column names as provided by the UCI dataset (common naming)
+  numeric_features:
+    - "cement"
+    - "blast_furnace_slag"
+    - "fly_ash"
+    - "water"
+    - "superplasticizer"
+    - "coarse_aggregate"
+    - "fine_aggregate"
+    - "age"
+  target: "compressive_strength"   # compressive strength target column name
+
+preprocessing:
+  # Typical preprocessing steps; scripts should implement these when converting raw -> processed
+  drop_na: true
+  standardize_numeric: true         # whether to z-score numeric features
+  scale_target: false
+  # Suggested binning rules for creating categorical factors from numeric variables
+  suggested_binning:
+    age_bins:
+      column: "age"
+      method: "edges"
+      # default edges are typical curing ages (days) used in concrete literature
+      edges: [0, 3, 7, 14, 28, 365]
+    cement_bins:
+      column: "cement"
+      method: "quantiles"
+      quantiles: [0.33, 0.66]      # 3-level factor by tertiles
+
+factors_for_doe:
+  # Example 2-factor design (A x B) for demonstration and paper experiments.
+  # These are names of derived categorical columns after preprocessing/binning.
+  factor_a: "age_bins"              # short name used across experiments
+  factor_b: "cement_bins"
+  # When running DOE, scripts should group by factor_a x factor_b and compute cell means
+
+experiment_defaults:
+  # Default training / evaluation settings (if applicable)
+  n_jobs: 4
+  device: "cpu"
+  quick_run:
+    # settings used by CI / sanity runs to keep runtime short
+    n_rows_sample: 500
+    run_name: "sanity_concrete"
