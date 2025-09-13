@@ -1,0 +1,48 @@
+# configs/datasets/car.yaml
+# Configuration for UCI Car Evaluation dataset (categorical classification)
+# Includes download metadata, column/level descriptions, and example DOE factor choices.
+
+dataset:
+  id: "car"
+  name: "UCI Car Evaluation"
+  task: "classification"
+  source:
+    url: "https://archive.ics.uci.edu/ml/machine-learning-databases/car/car.data"
+    sha256: ""            # optional checksum
+  files:
+    raw: "data/raw/car/car.data"
+    processed: "data/processed/car/processed.parquet"
+
+columns:
+  # According to UCI Car dataset the attributes are:
+  attributes:
+    - "buying"     # vhigh, high, med, low
+    - "maint"      # vhigh, high, med, low
+    - "doors"      # 2, 3, 4, 5more
+    - "persons"    # 2, 4, more
+    - "lug_boot"   # small, med, big
+    - "safety"     # low, med, high
+  target: "class"   # unacc, acc, good, vgood
+
+preprocessing:
+  # Typical preprocessing steps for categorical datasets
+  map_missing: null
+  encode_categoricals: "onehot"      # options: onehot / ordinal / leave
+  # no scaling for categoricals; provide canonical ordering if needed for ordinal encoding
+  ordinal_mappings: {}
+
+factors_for_doe:
+  # Choose two categorical factors for 2-factor experiments (example choices)
+  # Common choices: buying price and safety to study their complementary effects
+  factor_a: "buying"
+  factor_b: "safety"
+  factor_levels:
+    buying: ["vhigh", "high", "med", "low"]
+    safety: ["low", "med", "high"]
+
+experiment_defaults:
+  device: "cpu"
+  n_jobs: 4
+  quick_run:
+    n_rows_sample: 500
+    run_name: "sanity_car"
