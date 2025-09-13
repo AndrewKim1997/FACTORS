@@ -1,0 +1,27 @@
+# Conda environment for CPU-based development and reproduction
+# - Default Python is 3.11. Change python=3.11 to 3.10 or 3.12 if you need a different minor version.
+# - This environment uses conda packages where practical and falls back to pip for the rest
+# - The pip section installs packages listed in pip-cpu.txt to keep dependency lists synchronized
+
+name: factors-cpu
+channels:
+  - defaults
+  - conda-forge
+dependencies:
+  # change python version here if desired (3.10 / 3.11 / 3.12 are supported)
+  - python=3.11
+  - pip
+  - numpy>=1.24
+  - scipy>=1.10
+  - pandas>=1.5
+  - scikit-learn>=1.2
+  - matplotlib>=3.6
+  - seaborn>=0.12
+  - pyyaml>=6.0
+  - tqdm
+  - joblib
+  - requests
+  # Add optional conda-installed packages here if preferred, otherwise pip will handle them
+  # Example: - pip: -r pip-cpu.txt
+  - pip:
+    - -r pip-cpu.txt
