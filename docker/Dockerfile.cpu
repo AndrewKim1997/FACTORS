@@ -1,0 +1,64 @@
+# CPU Dockerfile for FACTORS
+# - Purpose: reproducible CPU image for running experiments and reproduction scripts
+# - Supports selecting Python version via build-arg (default: 3.11)
+# - Installs system deps, Python deps from envs/pip-cpu.txt, then installs package in editable mode
+# Usage:
+#   docker build -f docker/Dockerfile.cpu --build-arg PYTHON_VERSION=3.10 -t factors:cpu .
+
+ARG PYTHON_VERSION=3.11
+FROM python:${PYTHON_VERSION}-slim as base
+
+LABEL maintainer="FACTORS authors <maintainers@yourorg.example>"
+
+# Avoid interactive prompts during apt installs
+ENV DEBIAN_FRONTEND=noninteractive
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+
+# Install small set of system dependencies commonly needed for Python packages and scientific stack
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+      build-essential \
+      git \
+      curl \
+      wget \
+      ca-certificates \
+      gcc \
+      g++ \
+      libffi-dev \
+      libxml2-dev \
+      libxslt1-dev \
+      unzip \
+      && rm -rf /var/lib/apt/lists/*
+
+# Create workspace directory
+WORKDIR /workspace
+
+# Copy minimal files needed for installation first to leverage Docker layer caching
+# Copy dependency lists and pyproject so pip install layers cache across code changes
+COPY envs/pip-cpu.txt envs/pip-cpu.txt
+COPY pyproject.toml pyproject.toml
+COPY setup.cfg setup.cfg 2>/dev/null || true
+
+# Upgrade pip and install runtime dependencies from pip-cpu.txt
+RUN python -m pip install --upgrade pip setuptools wheel && \
+    if [ -f envs/pip-cpu.txt ]; then \
+      python -m pip install -r envs/pip-cpu.txt; \
+    else \
+      echo "Warning: envs/pip-cpu.txt not found, skipping pip install -r envs/pip-cpu.txt"; \
+    fi
+
+# Copy full repository into image
+COPY . /workspace
+
+# Install the package in editable mode so that mounted source works well with development containers
+RUN python -m pip install -e .
+
+# Make entrypoint visible and executable
+COPY docker/entrypoint.sh /usr/local/bin/factors-entrypoint.sh
+RUN chmod +x /usr/local/bin/factors-entrypoint.sh
+
+# Default workdir and entrypoint
+WORKDIR /workspace
+ENTRYPOINT ["bash", "/usr/local/bin/factors-entrypoint.sh"]
+CMD ["help"]
