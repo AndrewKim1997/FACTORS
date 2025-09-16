@@ -1,7 +1,7 @@
 <p align="center">
-  <a href="https://arxiv.org/abs/XXXX.XXXXX">
+  <a href="https://arxiv.org/abs/2509.10825">
     <img alt="arXiv"
-         src="https://img.shields.io/badge/arXiv-XXXX.XXXXX-b31b1b?style=flat-square&logo=arxiv&logoColor=white&labelColor=b31b1b">
+         src="https://img.shields.io/badge/arXiv-2509.10825-b31b1b?style=flat-square&logo=arxiv&logoColor=white&labelColor=b31b1b">
   </a>
   <a href="https://github.com/AndrewKim1997/FACTORS/actions/workflows/ci.yml">
     <img alt="CI"
@@ -259,7 +259,7 @@ If you use this repository, please cite the preprint:
   title        = {FACTORS: Factorial Approximation for Complementary Two-factor Optimization with Risk Scoring},
   author       = {Kim, Dongseok and Jeong, Wonjun and Oh, Gisung},
   year         = {2025},
-  eprint       = {XXXX.XXXXX},
+  eprint       = {2509.10825},
   archivePrefix = {arXiv},
   primaryClass = {cs.LG}
 }
