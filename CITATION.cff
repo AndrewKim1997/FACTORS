@@ -1,0 +1,51 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: "FACTORS: Factorial Approximation for Complementary Two-factor Optimization with Risk-aware Scoring"
+type: software
+authors:
+  - family-names: Kim
+    given-names: Dongseok
+  - family-names: Jeong
+    given-names: Wonjun
+  - family-names: Oh
+    given-names: Gisung
+repository-code: "https://github.com/AndrewKim1997/FACTORS"
+license: MIT
+version: "0.1.0"
+date-released: "2025-09-16"
+keywords:
+  - "Design of Experiments"
+  - "Explainable AI"
+  - "Factorial Design"
+  - "Shapley Values"
+  - "Uncertainty Quantification"
+identifiers:
+  - type: arXiv
+    value: "2509.10825"
+    description: "Preprint identifier on arXiv"
+  - type: url
+    value: "https://arxiv.org/abs/2509.10825"
+    description: "arXiv abstract page"
+abstract: >
+  FACTORS is a factorial-design based framework for decision-making that estimates main and
+  interaction effects from either cell means (CM path) or model-based SHAP attributions (SF path),
+  constructs a risk-aware score that accounts for uncertainty and cost, and selects combinations
+  under budget constraints. We report complementarity via the Pairwise Complementarity Index (PCI)
+  and quantify uncertainty using bootstrap confidence intervals.
+
+preferred-citation:
+  type: article
+  title: "FACTORS: Factorial Approximation for Complementary Two-factor Optimization with Risk-aware Scoring"
+  authors:
+    - family-names: Kim
+      given-names: Dongseok
+    - family-names: Jeong
+      given-names: Wonjun
+    - family-names: Oh
+      given-names: Gisung
+  year: 2025
+  journal: "arXiv"
+  url: "https://arxiv.org/abs/2509.10825"
+  identifiers:
+    - type: arXiv
+      value: "2509.10825"
