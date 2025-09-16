@@ -23,7 +23,7 @@
   </a>
 </p>
 
-<h1 align="center">FACTORS: DOE–SHAP Two-Factor Optimization with Risk Scoring</h1>
+<h1 align="center">FACTORS: Factorial Approximation for Complementary Two-factor Optimization with Risk-aware Scoring</h1>
 
 > **FACTORS** is an experimental design and decision-making framework grounded in **factorial design**. It centers on **two-factor (A×B)** analyses while **scaling to three or more factors**. From observed data, it estimates main and interaction effects using either **cell means (CM path)** or **model-based SHAP contributions (SF path)**. On top of these estimates, it builds a **risk-adjusted score** that accounts for both **uncertainty** and **cost**, then selects combinations under **budget constraints**.
 >
