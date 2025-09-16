@@ -51,7 +51,6 @@ WORKDIR /workspace
 # Copy dependency lists and project metadata first to leverage layer cache
 COPY envs/pip-gpu.txt envs/pip-gpu.txt
 COPY pyproject.toml pyproject.toml
-COPY setup.cfg setup.cfg 2>/dev/null || true
 
 # Install Python dependencies. We expect that envs/pip-gpu.txt contains appropriate torch wheel or instructs users to install compatible wheel.
 RUN if [ -f envs/pip-gpu.txt ]; then \
