@@ -1,5 +1,4 @@
 # .github/workflows/docker-ci.yml
-# Docker CI workflow: build, tag, and (optionally) push CPU and GPU images.
 name: Docker CI
 
 on:
@@ -8,8 +7,9 @@ on:
   workflow_dispatch:
 
 env:
-  # Ensure registry owner is lowercased to satisfy Docker tag requirements.
-  REGISTRY: ghcr.io/${{ toLower(github.repository_owner) }}
+  # Domain only for login; owner/repo are used in tags.
+  REGISTRY: ghcr.io
+  IMAGE_NAMESPACE: ${{ toLower(github.repository_owner) }}
   IMAGE_NAME: factors
 
 permissions:
@@ -34,19 +34,20 @@ jobs:
         with:
           buildkitd-flags: --debug
 
-      - name: Log in to registry
+      - name: Log in to GHCR
         uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Debug: print image tags to be used
+      - name: "Debug: print CPU image tags"
         run: |
           echo "REGISTRY=${REGISTRY}"
+          echo "IMAGE_NAMESPACE=${IMAGE_NAMESPACE}"
           echo "IMAGE_NAME=${IMAGE_NAME}"
-          echo "CPU_TAG=${REGISTRY}/${IMAGE_NAME}:cpu-${GITHUB_SHA}"
-          echo "CPU_LATEST=${REGISTRY}/${IMAGE_NAME}:cpu-latest"
+          echo "CPU_TAG=${REGISTRY}/${IMAGE_NAMESPACE}/${IMAGE_NAME}:cpu-${GITHUB_SHA}"
+          echo "CPU_LATEST=${REGISTRY}/${IMAGE_NAMESPACE}/${IMAGE_NAME}:cpu-latest"
 
       - name: Build and push CPU image
         uses: docker/build-push-action@v5
@@ -56,18 +57,19 @@ jobs:
           platforms: linux/amd64,linux/arm64
           push: true
           tags: |
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:cpu-${{ github.sha }}
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:cpu-latest
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAMESPACE }}/${{ env.IMAGE_NAME }}:cpu-${{ github.sha }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAMESPACE }}/${{ env.IMAGE_NAME }}:cpu-latest
           build-args: |
             PYTHON_VERSION=3.11
 
       - name: Smoke test CPU image (run entrypoint help)
         run: |
-          IMAGE=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:cpu-${{ github.sha }}
+          IMAGE=${{ env.REGISTRY }}/${{ env.IMAGE_NAMESPACE }}/${{ env.IMAGE_NAME }}:cpu-${{ github.sha }}
           docker run --rm --entrypoint /usr/local/bin/factors-entrypoint.sh ${IMAGE} help || true
 
       - name: Create outputs json
-        run: echo "{\"cpu_image\":\"${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:cpu-${{ github.sha }}\"}" > docker_images.json
+        run: |
+          echo "{\"cpu_image\":\"${{ env.REGISTRY }}/${{ env.IMAGE_NAMESPACE }}/${{ env.IMAGE_NAME }}:cpu-${{ github.sha }}\"}" > docker_images.json
 
       - name: Upload Docker build metadata
         uses: actions/upload-artifact@v4
@@ -80,6 +82,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: build-and-push-cpu
     timeout-minutes: 90
+
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
@@ -92,19 +95,20 @@ jobs:
         with:
           buildkitd-flags: --debug
 
-      - name: Log in to registry
+      - name: Log in to GHCR
         uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Debug: print GPU image tags to be used
+      - name: "Debug: print GPU image tags"
         run: |
           echo "REGISTRY=${REGISTRY}"
+          echo "IMAGE_NAMESPACE=${IMAGE_NAMESPACE}"
           echo "IMAGE_NAME=${IMAGE_NAME}"
-          echo "GPU_TAG=${REGISTRY}/${IMAGE_NAME}:gpu-${GITHUB_SHA}"
-          echo "GPU_LATEST=${REGISTRY}/${IMAGE_NAME}:gpu-latest"
+          echo "GPU_TAG=${REGISTRY}/${IMAGE_NAMESPACE}/${IMAGE_NAME}:gpu-${GITHUB_SHA}"
+          echo "GPU_LATEST=${REGISTRY}/${IMAGE_NAMESPACE}/${IMAGE_NAME}:gpu-latest"
 
       - name: Build and push GPU image
         uses: docker/build-push-action@v5
@@ -114,8 +118,8 @@ jobs:
           platforms: linux/amd64
           push: true
           tags: |
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:gpu-${{ github.sha }}
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:gpu-latest
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAMESPACE }}/${{ env.IMAGE_NAME }}:gpu-${{ github.sha }}
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAMESPACE }}/${{ env.IMAGE_NAME }}:gpu-latest
           build-args: |
             UBUNTU_VERSION=22.04
 
@@ -123,5 +127,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: docker-images-gpu-${{ github.sha }}
-          path: |
-            docker_images.json
+          path: docker_images.json
