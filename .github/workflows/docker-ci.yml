@@ -1,5 +1,4 @@
 # .github/workflows/docker-ci.yml
-
 name: Docker CI
 
 on:
@@ -8,10 +7,8 @@ on:
   workflow_dispatch:
 
 env:
-  # Domain only for login; owner/repo are used in tags.
-  REGISTRY: ghcr.io
-  IMAGE_NAMESPACE: ${{ toLower(github.repository_owner) }}
-  IMAGE_NAME: factors
+  REGISTRY: ghcr.io            # domain only for login
+  IMAGE_NAME: factors          # keep image name lowercase
 
 permissions:
   contents: read
@@ -26,6 +23,10 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
+
+      - name: Normalize owner to lowercase (for Docker tags)
+        run: |
+          echo "IMAGE_NAMESPACE=$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')" >> "$GITHUB_ENV"
 
       - name: Set up QEMU (optional multi-arch)
         uses: docker/setup-qemu-action@v3
@@ -87,6 +88,10 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
+
+      - name: Normalize owner to lowercase (for Docker tags)
+        run: |
+          echo "IMAGE_NAMESPACE=$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')" >> "$GITHUB_ENV"
 
       - name: Set up QEMU (optional multi-arch)
         uses: docker/setup-qemu-action@v3
