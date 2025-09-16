@@ -255,13 +255,11 @@ FACTORS/
 If you use this repository, please cite the preprint:
 
 ```bibtex
-@misc{kim2025factors,
-  title        = {FACTORS: Factorial Approximation for Complementary Two-factor Optimization with Risk Scoring},
-  author       = {Kim, Dongseok and Jeong, Wonjun and Oh, Gisung},
-  year         = {2025},
-  eprint       = {2509.10825},
-  archivePrefix = {arXiv},
-  primaryClass = {cs.LG}
+@article{kim2025factors,
+  title={FACTORS: Factorial Approximation for Complementary Two-factor Optimization with Risk-aware Scoring},
+  author={Kim, Dongseok and Jeong, Wonjun and Oh, Gisung},
+  journal={arXiv preprint arXiv:2509.10825},
+  year={2025}
 }
 ```
 
