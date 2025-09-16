@@ -38,7 +38,6 @@ WORKDIR /workspace
 # Copy dependency lists and pyproject so pip install layers cache across code changes
 COPY envs/pip-cpu.txt envs/pip-cpu.txt
 COPY pyproject.toml pyproject.toml
-COPY setup.cfg setup.cfg 2>/dev/null || true
 
 # Upgrade pip and install runtime dependencies from pip-cpu.txt
 RUN python -m pip install --upgrade pip setuptools wheel && \
