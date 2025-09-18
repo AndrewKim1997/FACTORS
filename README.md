@@ -29,7 +29,7 @@
 >
 > The framework supports both **full** and **fractional** factorial designs, including **unbalanced** or **missing** cells. For three or more factors it uses **pairwise (two-factor) approximations** to reduce dimensionality and improve interpretability, and when needed, inspects **three-way interaction signals** through ablations and diagnostic indicators. Throughout, it quantifies complementarity via the **Pairwise Complementarity Index (PCI)** and evaluates reliability with **bootstrap confidence intervals** and **sample-complexity analysis**.
 
-* **Paper (preprint)**: <em>FACTORS: Factorial Approximation for Complementary Optimization with Risk-aware Scoring</em> — arXiv: [2509.10825](https://arxiv.org/abs/2509.10825)
+* **Paper (preprint)**: <em>FACTORS: Factorial Approximation for Complementary Optimization with Risk-aware Scoring</em> — arXiv: https://arxiv.org/abs/2509.10825
 * **Core idea**: estimate cell means either from observed outcomes (**CM path**) or via **SHAP-fit** (least-squares reconstruction from SHAP attributions), form a **factorial-design approximation** (main effects + interactions), then optimize a risk-aware objective. Report the **Pairwise Complementarity Index (PCI)** and bootstrap-based uncertainty for interpretability.
 
 ---
